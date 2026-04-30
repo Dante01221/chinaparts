@@ -3,16 +3,19 @@ import { products as initialProducts } from '@/data/products'
 
 const KV_KEY = 'products'
 
-function isKVConfigured() {
-  return !!(process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN)
+function isRedisConfigured() {
+  return !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
 }
 
-async function getKV() {
-  const { kv } = await import('@vercel/kv')
-  return kv
+async function getRedis() {
+  const { Redis } = await import('@upstash/redis')
+  return new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL!,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+  })
 }
 
-// Local file fallback (dev without KV)
+// Local file fallback (dev without Redis)
 async function readLocalFile(): Promise<Product[]> {
   const fs = await import('fs/promises')
   const path = await import('path')
@@ -33,12 +36,11 @@ async function writeLocalFile(products: Product[]): Promise<void> {
 }
 
 export async function getProducts(): Promise<Product[]> {
-  if (isKVConfigured()) {
-    const kv = await getKV()
-    const data = await kv.get<Product[]>(KV_KEY)
-    // first launch — seed from initial data
+  if (isRedisConfigured()) {
+    const redis = await getRedis()
+    const data = await redis.get<Product[]>(KV_KEY)
     if (!data) {
-      await kv.set(KV_KEY, initialProducts)
+      await redis.set(KV_KEY, initialProducts)
       return initialProducts
     }
     return data
@@ -47,9 +49,9 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 export async function setProducts(products: Product[]): Promise<void> {
-  if (isKVConfigured()) {
-    const kv = await getKV()
-    await kv.set(KV_KEY, products)
+  if (isRedisConfigured()) {
+    const redis = await getRedis()
+    await redis.set(KV_KEY, products)
   } else {
     await writeLocalFile(products)
   }
