@@ -2,33 +2,42 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
-import { products as initialProducts, brands } from '@/data/products'
+import { brands } from '@/data/products'
 import type { Product } from '@/data/products'
 import ProductModal from './ProductModal'
 
-const STORAGE_KEY = 'admin_products'
-
-function loadProducts(): Product[] {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) return JSON.parse(saved)
-  } catch {}
-  return initialProducts
+function useAdminPassword() {
+  if (typeof window === 'undefined') return ''
+  return sessionStorage.getItem('admin_password') || ''
 }
 
-function saveProducts(products: Product[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(products))
+async function apiFetch(path: string, options: RequestInit = {}) {
+  const password = sessionStorage.getItem('admin_password') || ''
+  return fetch(path, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-password': password,
+      ...options.headers,
+    },
+  })
 }
 
 export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
   const [brandFilter, setBrandFilter] = useState('all')
   const [modal, setModal] = useState<{ mode: 'add' | 'edit'; product?: Product } | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
 
-  useEffect(() => { setProducts(loadProducts()) }, [])
+  useEffect(() => {
+    apiFetch('/api/admin/products')
+      .then((r) => r.json())
+      .then((data) => { setProducts(data); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
@@ -41,38 +50,46 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
     })
   }, [products, search, brandFilter])
 
-  const handleSave = (product: Product) => {
+  const handleSave = async (product: Product) => {
+    setSaving(true)
     const isNew = !products.find((p) => p.id === product.id)
-    const updated = isNew
-      ? [...products, product]
-      : products.map((p) => (p.id === product.id ? product : p))
-    setProducts(updated)
-    saveProducts(updated)
+    let res: Response
+    if (isNew) {
+      res = await apiFetch('/api/admin/products', { method: 'POST', body: JSON.stringify(product) })
+    } else {
+      res = await apiFetch(`/api/admin/products/${product.id}`, { method: 'PUT', body: JSON.stringify(product) })
+    }
+    if (res.ok) {
+      const updated = await res.json()
+      setProducts(updated)
+    }
+    setSaving(false)
     setModal(null)
   }
 
-  const handleDelete = (id: string) => {
-    const updated = products.filter((p) => p.id !== id)
-    setProducts(updated)
-    saveProducts(updated)
+  const handleDelete = async (id: string) => {
+    setSaving(true)
+    const res = await apiFetch(`/api/admin/products/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      const updated = await res.json()
+      setProducts(updated)
+    }
+    setSaving(false)
     setDeleteConfirm(null)
   }
 
-  const handleExport = () => {
-    const json = JSON.stringify(products, null, 2)
-    navigator.clipboard.writeText(json)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  const handleToggleStatus = (id: string) => {
-    const updated = products.map((p) =>
-      p.id === id
-        ? { ...p, status: p.status === 'В наличии' ? ('Под заказ' as const) : ('В наличии' as const) }
-        : p
-    )
-    setProducts(updated)
-    saveProducts(updated)
+  const handleToggleStatus = async (id: string) => {
+    const product = products.find((p) => p.id === id)
+    if (!product) return
+    const newStatus = product.status === 'В наличии' ? 'Под заказ' : 'В наличии'
+    const res = await apiFetch(`/api/admin/products/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ ...product, status: newStatus }),
+    })
+    if (res.ok) {
+      const updated = await res.json()
+      setProducts(updated)
+    }
   }
 
   return (
@@ -86,18 +103,12 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
           </h1>
         </div>
         <div className="flex items-center gap-3">
-          <button
-            onClick={handleExport}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-[12px] font-bold uppercase transition-all ${
-              copied
-                ? 'bg-green-500 text-white border-green-500'
-                : 'border-primary-container text-primary-container hover:bg-primary-container hover:text-white'
-            }`}
-            style={{ fontFamily: 'Space Grotesk, sans-serif' }}
-          >
-            <span className="material-symbols-outlined text-sm">{copied ? 'check' : 'content_copy'}</span>
-            {copied ? 'Скопировано!' : 'Экспорт JSON'}
-          </button>
+          {saving && (
+            <span className="text-[12px] text-secondary flex items-center gap-1">
+              <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+              Сохранение...
+            </span>
+          )}
           <button
             onClick={onLogout}
             className="text-[12px] text-secondary hover:text-error transition-colors flex items-center gap-1"
@@ -142,84 +153,84 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
           </div>
         </div>
 
-        <p className="text-[13px] text-on-surface-variant mb-4">
-          Всего товаров: {products.length} · Показано: {filtered.length}
-        </p>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter">
-          {filtered.map((product) => (
-            <div key={product.id} className="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden hover:shadow-md transition-shadow group">
-              <div className="h-48 bg-slate-50 relative overflow-hidden">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute top-3 left-3">
-                  <button
-                    onClick={() => handleToggleStatus(product.id)}
-                    className={`px-2 py-1 rounded text-[11px] font-bold uppercase cursor-pointer transition-colors ${
-                      product.status === 'В наличии'
-                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                        : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                    }`}
-                  >
-                    {product.status}
-                  </button>
-                </div>
-                <div className="absolute top-3 right-3">
-                  <span className={`px-2 py-1 rounded text-[10px] font-bold ${
-                    product.type === 'Оригинал'
-                      ? 'bg-primary-fixed text-on-primary-fixed-variant'
-                      : 'bg-surface-container text-secondary'
-                  }`}>
-                    {product.type}
-                  </span>
-                </div>
-              </div>
-              <div className="p-4 space-y-3">
-                <div>
-                  <h3 className="font-bold text-on-surface leading-tight" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-                    {product.name}
-                  </h3>
-                  <p className="text-[11px] text-secondary mt-1 uppercase" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-                    {product.partNumber}
-                  </p>
-                </div>
-                <div className="flex items-end justify-between border-t border-slate-50 pt-3">
-                  <div>
-                    <p className="text-[11px] text-slate-400 uppercase" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Цена</p>
-                    <p className="text-[20px] font-bold text-primary" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-                      ${product.price}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setModal({ mode: 'edit', product })}
-                      className="p-2 text-slate-400 hover:text-primary-container transition-colors border border-slate-100 rounded-lg hover:border-primary-container"
-                    >
-                      <span className="material-symbols-outlined text-sm">edit</span>
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm(product.id)}
-                      className="p-2 text-slate-400 hover:text-error transition-colors border border-slate-100 rounded-lg hover:border-error"
-                    >
-                      <span className="material-symbols-outlined text-sm">delete</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filtered.length === 0 && (
-          <div className="text-center py-16 text-on-surface-variant">
-            <span className="material-symbols-outlined text-5xl mb-4 block text-outline">inventory_2</span>
-            Нет товаров по заданным фильтрам
+        {loading ? (
+          <div className="flex items-center justify-center py-24">
+            <span className="material-symbols-outlined text-4xl text-outline animate-spin">progress_activity</span>
           </div>
+        ) : (
+          <>
+            <p className="text-[13px] text-on-surface-variant mb-4">
+              Всего товаров: {products.length} · Показано: {filtered.length}
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter">
+              {filtered.map((product) => (
+                <div key={product.id} className="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden hover:shadow-md transition-shadow group">
+                  <div className="h-48 bg-slate-50 relative overflow-hidden">
+                    {product.image ? (
+                      <Image src={product.image} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-outline">
+                        <span className="material-symbols-outlined text-5xl">image</span>
+                      </div>
+                    )}
+                    <div className="absolute top-3 left-3">
+                      <button
+                        onClick={() => handleToggleStatus(product.id)}
+                        className={`px-2 py-1 rounded text-[11px] font-bold uppercase cursor-pointer transition-colors ${
+                          product.status === 'В наличии'
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                            : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                        }`}
+                      >
+                        {product.status}
+                      </button>
+                    </div>
+                    <div className="absolute top-3 right-3">
+                      <span className={`px-2 py-1 rounded text-[10px] font-bold ${
+                        product.type === 'Оригинал' ? 'bg-primary-fixed text-on-primary-fixed-variant' : 'bg-surface-container text-secondary'
+                      }`}>
+                        {product.type}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <div>
+                      <h3 className="font-bold text-on-surface leading-tight" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>{product.name}</h3>
+                      <p className="text-[11px] text-secondary mt-1 uppercase" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>{product.partNumber}</p>
+                    </div>
+                    <div className="flex items-end justify-between border-t border-slate-50 pt-3">
+                      <div>
+                        <p className="text-[11px] text-slate-400 uppercase" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Цена</p>
+                        <p className="text-[20px] font-bold text-primary" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>${product.price}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setModal({ mode: 'edit', product })}
+                          className="p-2 text-slate-400 hover:text-primary-container transition-colors border border-slate-100 rounded-lg hover:border-primary-container"
+                        >
+                          <span className="material-symbols-outlined text-sm">edit</span>
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirm(product.id)}
+                          className="p-2 text-slate-400 hover:text-error transition-colors border border-slate-100 rounded-lg hover:border-error"
+                        >
+                          <span className="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {filtered.length === 0 && (
+              <div className="text-center py-16 text-on-surface-variant">
+                <span className="material-symbols-outlined text-5xl mb-4 block text-outline">inventory_2</span>
+                Нет товаров по заданным фильтрам
+              </div>
+            )}
+          </>
         )}
       </main>
 
@@ -227,21 +238,13 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl">
-            <h3 className="font-bold text-on-surface mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-              Удалить товар?
-            </h3>
+            <h3 className="font-bold text-on-surface mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Удалить товар?</h3>
             <p className="text-secondary text-sm mb-6">Это действие нельзя отменить.</p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteConfirm(null)}
-                className="flex-1 py-2.5 border border-outline-variant rounded-lg text-[13px] font-bold text-secondary hover:bg-surface-container transition-colors"
-              >
+              <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-2.5 border border-outline-variant rounded-lg text-[13px] font-bold text-secondary hover:bg-surface-container transition-colors">
                 Отмена
               </button>
-              <button
-                onClick={() => handleDelete(deleteConfirm)}
-                className="flex-1 py-2.5 bg-error text-white rounded-lg text-[13px] font-bold hover:brightness-110 transition-all"
-              >
+              <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 py-2.5 bg-error text-white rounded-lg text-[13px] font-bold hover:brightness-110 transition-all">
                 Удалить
               </button>
             </div>
@@ -249,14 +252,8 @@ export default function AdminPanel({ onLogout }: { onLogout: () => void }) {
         </div>
       )}
 
-      {/* Add/Edit modal */}
       {modal && (
-        <ProductModal
-          mode={modal.mode}
-          product={modal.product}
-          onSave={handleSave}
-          onClose={() => setModal(null)}
-        />
+        <ProductModal mode={modal.mode} product={modal.product} onSave={handleSave} onClose={() => setModal(null)} />
       )}
     </div>
   )

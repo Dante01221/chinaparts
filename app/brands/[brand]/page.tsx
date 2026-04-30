@@ -2,15 +2,16 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import TopBar from '@/components/TopBar'
 import BottomNav from '@/components/BottomNav'
-import { brands, categories, products } from '@/data/products'
+import { brands, categories } from '@/data/products'
+import { getProducts } from '@/lib/products-store'
 
-export function generateStaticParams() {
-  return brands.map((b) => ({ brand: b.slug }))
-}
+export const revalidate = 0
 
-export default function BrandCategoriesPage({ params }: { params: { brand: string } }) {
+export default async function BrandCategoriesPage({ params }: { params: { brand: string } }) {
   const brand = brands.find((b) => b.slug === params.brand)
   if (!brand) notFound()
+
+  const products = await getProducts()
 
   const availableCategories = categories.filter((cat) =>
     products.some((p) => p.brandSlug === params.brand && p.categorySlug === cat.slug)
@@ -33,17 +34,12 @@ export default function BrandCategoriesPage({ params }: { params: { brand: strin
           <h2 className="text-display font-bold text-primary-container" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
             Категории запчастей
           </h2>
-          <p className="text-on-surface-variant text-body-md mt-2">
-            Высокоточные компоненты для вашего авто. Выберите систему.
-          </p>
+          <p className="text-on-surface-variant text-body-md mt-2">Высокоточные компоненты для вашего авто. Выберите систему.</p>
         </div>
 
         <div className="grid grid-cols-1 gap-gutter">
           {availableCategories.map((cat) => {
-            const count = products.filter(
-              (p) => p.brandSlug === params.brand && p.categorySlug === cat.slug
-            ).length
-
+            const count = products.filter((p) => p.brandSlug === params.brand && p.categorySlug === cat.slug).length
             return (
               <Link
                 key={cat.slug}
@@ -54,9 +50,7 @@ export default function BrandCategoriesPage({ params }: { params: { brand: strin
                   <span className="material-symbols-outlined">{cat.icon}</span>
                 </div>
                 <div className="flex-1">
-                  <h4 className="text-headline-md font-semibold text-primary-container text-[18px]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-                    {cat.name}
-                  </h4>
+                  <h4 className="text-[18px] font-semibold text-primary-container" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>{cat.name}</h4>
                   <p className="text-on-surface-variant text-[13px]">{cat.description}</p>
                 </div>
                 <div className="text-right shrink-0">

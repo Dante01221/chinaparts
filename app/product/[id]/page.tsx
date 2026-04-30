@@ -4,13 +4,12 @@ import Image from 'next/image'
 import TopBar from '@/components/TopBar'
 import BottomNav from '@/components/BottomNav'
 import AddToCartButton from '@/components/AddToCartButton'
-import { products } from '@/data/products'
+import { getProducts } from '@/lib/products-store'
 
-export function generateStaticParams() {
-  return products.map((p) => ({ id: p.id }))
-}
+export const revalidate = 0
 
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default async function ProductPage({ params }: { params: { id: string } }) {
+  const products = await getProducts()
   const product = products.find((p) => p.id === params.id)
   if (!product) notFound()
 
@@ -28,17 +27,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
         <div className="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden mb-gutter">
           <div className="relative w-full aspect-[4/3] bg-surface-container">
-            <Image
-              src={product.image}
-              alt={product.name}
-              fill
-              className="object-cover"
-            />
+            <Image src={product.image} alt={product.name} fill className="object-cover" />
             <div className="absolute top-4 left-4">
               <span className={`text-[11px] font-bold px-3 py-1 rounded-full flex items-center gap-1 uppercase tracking-widest ${
-                product.status === 'В наличии'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-yellow-100 text-yellow-800'
+                product.status === 'В наличии' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
               }`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${product.status === 'В наличии' ? 'bg-green-500' : 'bg-yellow-500'}`} />
                 {product.status}
@@ -60,7 +52,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           <p className="text-[12px] text-secondary mb-stack-md uppercase tracking-widest" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
             Артикул: {product.partNumber}
           </p>
-
           <p className="text-secondary text-body-md mb-stack-lg leading-relaxed">{product.description}</p>
 
           <div className="bg-slate-900 text-white p-gutter rounded-xl mb-stack-lg">
@@ -71,23 +62,19 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             <div className="space-y-3">
               {product.weight && (
                 <div className="flex justify-between text-sm border-b border-white/10 pb-2">
-                  <span className="text-slate-400">Вес</span>
-                  <span className="font-medium">{product.weight}</span>
+                  <span className="text-slate-400">Вес</span><span className="font-medium">{product.weight}</span>
                 </div>
               )}
               {product.material && (
                 <div className="flex justify-between text-sm border-b border-white/10 pb-2">
-                  <span className="text-slate-400">Материал</span>
-                  <span className="font-medium">{product.material}</span>
+                  <span className="text-slate-400">Материал</span><span className="font-medium">{product.material}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm border-b border-white/10 pb-2">
-                <span className="text-slate-400">Марка</span>
-                <span className="font-medium">{product.brand} {product.model}</span>
+                <span className="text-slate-400">Марка</span><span className="font-medium">{product.brand} {product.model}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Производитель</span>
-                <span className="font-medium">Guangdong, CN</span>
+                <span className="text-slate-400">Производитель</span><span className="font-medium">Guangdong, CN</span>
               </div>
             </div>
           </div>
@@ -95,9 +82,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           <div className="flex items-center justify-between mb-stack-lg">
             <div>
               <span className="text-[12px] text-on-surface-variant uppercase tracking-widest" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Цена</span>
-              <div className="text-[32px] font-bold text-primary" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-                ${product.price}
-              </div>
+              <div className="text-[32px] font-bold text-primary" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>${product.price}</div>
               <span className="text-[12px] text-on-surface-variant">+ доставка</span>
             </div>
           </div>
@@ -120,9 +105,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         <div className="bg-secondary-container p-8 rounded-xl flex flex-col justify-center text-on-secondary-container">
           <span className="material-symbols-outlined text-4xl mb-4">verified</span>
           <h4 className="text-headline-md font-semibold mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Гарантия качества</h4>
-          <p className="text-sm opacity-80 leading-snug">
-            Все запчасти проходят проверку перед отправкой. Гарантия совместимости с вашим автомобилем. Возврат в течение 14 дней.
-          </p>
+          <p className="text-sm opacity-80 leading-snug">Все запчасти проходят проверку перед отправкой. Гарантия совместимости. Возврат в течение 14 дней.</p>
         </div>
       </main>
       <BottomNav />

@@ -3,8 +3,18 @@ import Image from 'next/image'
 import TopBar from '@/components/TopBar'
 import BottomNav from '@/components/BottomNav'
 import { brands } from '@/data/products'
+import { getProducts } from '@/lib/products-store'
 
-export default function BrandsPage() {
+export const revalidate = 0
+
+export default async function BrandsPage() {
+  const products = await getProducts()
+
+  const brandsWithCount = brands.map((b) => ({
+    ...b,
+    count: products.filter((p) => p.brandSlug === b.slug).length,
+  }))
+
   return (
     <div className="min-h-screen bg-background">
       <TopBar />
@@ -19,20 +29,14 @@ export default function BrandsPage() {
         </section>
 
         <div className="grid grid-cols-2 gap-gutter">
-          {brands.map((brand) => (
+          {brandsWithCount.map((brand) => (
             <Link
               key={brand.slug}
               href={`/brands/${brand.slug}`}
               className="bg-white border border-[#E2E8F0] p-6 flex flex-col items-center justify-center gap-4 hover:border-orange-500 hover:shadow-lg transition-all cursor-pointer group rounded-lg"
             >
               <div className="w-20 h-20 flex items-center justify-center grayscale group-hover:grayscale-0 transition-all">
-                <Image
-                  src={brand.image}
-                  alt={brand.name}
-                  width={80}
-                  height={80}
-                  className="w-full object-contain"
-                />
+                <Image src={brand.image} alt={brand.name} width={80} height={80} className="w-full object-contain" />
               </div>
               <div className="text-center">
                 <span className="block text-[12px] font-medium uppercase tracking-widest text-primary" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
@@ -56,7 +60,7 @@ export default function BrandsPage() {
           </div>
         </div>
 
-        <section className="mt-stack-lg grid grid-cols-1 gap-gutter">
+        <section className="mt-stack-lg">
           <div className="bg-primary-container text-white p-8 rounded-lg relative overflow-hidden flex flex-col justify-between min-h-[180px]">
             <div className="relative z-10">
               <h3 className="text-headline-md font-semibold mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>VIN Поиск</h3>

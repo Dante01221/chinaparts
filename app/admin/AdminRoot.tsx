@@ -27,6 +27,7 @@ export default function AdminRoot() {
     const ok = await checkAdminPassword(password)
     if (ok) {
       sessionStorage.setItem('admin_authed', 'yes')
+      sessionStorage.setItem('admin_password', password)
       setAuthed(true)
     } else {
       setError(true)

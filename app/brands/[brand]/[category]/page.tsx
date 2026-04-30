@@ -3,24 +3,18 @@ import { notFound } from 'next/navigation'
 import TopBar from '@/components/TopBar'
 import BottomNav from '@/components/BottomNav'
 import ProductFilters from '@/components/ProductFilters'
-import { brands, categories, products, getProductsByBrandAndCategory } from '@/data/products'
+import { brands, categories } from '@/data/products'
+import { getProducts } from '@/lib/products-store'
 
-export function generateStaticParams() {
-  const params = []
-  for (const brand of brands) {
-    for (const cat of categories) {
-      params.push({ brand: brand.slug, category: cat.slug })
-    }
-  }
-  return params
-}
+export const revalidate = 0
 
-export default function ProductListPage({ params }: { params: { brand: string; category: string } }) {
+export default async function ProductListPage({ params }: { params: { brand: string; category: string } }) {
   const brand = brands.find((b) => b.slug === params.brand)
   const category = categories.find((c) => c.slug === params.category)
   if (!brand || !category) notFound()
 
-  const items = getProductsByBrandAndCategory(params.brand, params.category)
+  const allProducts = await getProducts()
+  const items = allProducts.filter((p) => p.brandSlug === params.brand && p.categorySlug === params.category)
 
   return (
     <div className="min-h-screen bg-background">
@@ -38,12 +32,7 @@ export default function ProductListPage({ params }: { params: { brand: string; c
           {category.name}
         </h2>
 
-        <ProductFilters
-          products={items}
-          brandSlug={params.brand}
-          brandName={brand.name}
-          categoryName={category.name}
-        />
+        <ProductFilters products={items} brandSlug={params.brand} brandName={brand.name} categoryName={category.name} />
       </main>
       <BottomNav />
     </div>
