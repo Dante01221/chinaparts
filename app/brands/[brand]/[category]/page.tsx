@@ -1,9 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import TopBar from '@/components/TopBar'
 import BottomNav from '@/components/BottomNav'
-import AddToCartButton from '@/components/AddToCartButton'
+import ProductFilters from '@/components/ProductFilters'
 import { brands, categories, products, getProductsByBrandAndCategory } from '@/data/products'
 
 export function generateStaticParams() {
@@ -35,71 +34,16 @@ export default function ProductListPage({ params }: { params: { brand: string; c
           <span className="text-orange-500 font-bold">{category.name}</span>
         </div>
 
-        <h2 className="text-display font-bold text-primary-container mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+        <h2 className="text-display font-bold text-primary-container mb-stack-lg" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
           {category.name}
         </h2>
-        <p className="text-on-surface-variant text-body-md mb-stack-lg">{items.length} товаров</p>
 
-        {items.length === 0 ? (
-          <div className="bg-white border border-[#E2E8F0] rounded-xl p-12 text-center">
-            <span className="material-symbols-outlined text-4xl text-outline mb-4 block">inventory_2</span>
-            <p className="text-on-surface-variant text-body-md">В этой категории пока нет товаров.</p>
-            <a
-              href={`https://wa.me/996704226587?text=${encodeURIComponent(`Здравствуйте! Ищу ${category.name} для ${brand.name}.`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-block bg-orange-500 text-white px-6 py-3 rounded-lg text-[13px] font-bold uppercase hover:bg-orange-600 transition-colors"
-            >
-              Запросить в WhatsApp
-            </a>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-gutter">
-            {items.map((product) => (
-              <div key={product.id} className="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden flex gap-0 hover:shadow-md transition-shadow">
-                <Link href={`/product/${product.id}`} className="w-32 h-32 shrink-0 bg-surface-container">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    width={128}
-                    height={128}
-                    className="w-full h-full object-cover"
-                  />
-                </Link>
-                <div className="flex-1 p-stack-md flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-start justify-between gap-2">
-                      <Link href={`/product/${product.id}`}>
-                        <h3 className="text-[14px] font-bold text-primary leading-snug" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-                          {product.name}
-                        </h3>
-                      </Link>
-                    </div>
-                    <p className="text-[11px] text-secondary mt-1">{product.partNumber}</p>
-                    <div className="flex gap-2 mt-2">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                        product.status === 'В наличии'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {product.status}
-                      </span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant">
-                        {product.type}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-[20px] font-bold text-primary" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-                      ${product.price}
-                    </span>
-                    <AddToCartButton product={product} compact />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <ProductFilters
+          products={items}
+          brandSlug={params.brand}
+          brandName={brand.name}
+          categoryName={category.name}
+        />
       </main>
       <BottomNav />
     </div>

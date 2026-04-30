@@ -10,9 +10,9 @@ export default function BottomNav() {
 
   const links = [
     { href: '/brands', icon: 'directions_car', label: 'Марки' },
-    { href: '/search', icon: 'search', label: 'Поиск' },
+    { href: '/categories', icon: 'grid_view', label: 'Категории' },
     { href: '/cart', icon: 'shopping_cart', label: 'Корзина', badge: count },
-    { href: '/orders', icon: 'history', label: 'Заказы' },
+    { href: '/search', icon: 'search', label: 'Поиск' },
   ]
 
   return (
