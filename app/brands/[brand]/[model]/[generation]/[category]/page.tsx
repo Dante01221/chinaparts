@@ -8,21 +8,21 @@ import { getProducts } from '@/lib/products-store'
 
 export const revalidate = 0
 
-export default async function ProductListPage({ params }: { params: { brand: string; model: string; body: string; category: string } }) {
+export default async function ProductListPage({ params }: { params: { brand: string; model: string; generation: string; category: string } }) {
   const brand = brands.find((b) => b.slug === params.brand)
   const carModel = models.find((m) => m.slug === params.model && m.brandSlug === params.brand)
   const category = categories.find((c) => c.slug === params.category)
   if (!brand || !carModel || !category) notFound()
 
-  const bodyType = carModel.bodyTypes.find((b) => b.slug === params.body)
-  if (!bodyType) notFound()
+  const gen = carModel.generations.find((g) => g.slug === params.generation)
+  if (!gen) notFound()
 
   const allProducts = await getProducts()
   const items = allProducts.filter(
     (p) =>
       p.brandSlug === params.brand &&
       p.modelSlug === params.model &&
-      p.bodySlug === params.body &&
+      p.generationSlug === params.generation &&
       p.categorySlug === params.category
   )
 
@@ -37,7 +37,7 @@ export default async function ProductListPage({ params }: { params: { brand: str
           <span className="material-symbols-outlined text-slate-300 text-sm">chevron_right</span>
           <Link href={`/brands/${params.brand}/${params.model}`} className="text-slate-400 hover:text-orange-500 transition-colors">{carModel.name}</Link>
           <span className="material-symbols-outlined text-slate-300 text-sm">chevron_right</span>
-          <Link href={`/brands/${params.brand}/${params.model}/${params.body}`} className="text-slate-400 hover:text-orange-500 transition-colors">{bodyType.name}</Link>
+          <Link href={`/brands/${params.brand}/${params.model}/${params.generation}`} className="text-slate-400 hover:text-orange-500 transition-colors">{gen.name}</Link>
           <span className="material-symbols-outlined text-slate-300 text-sm">chevron_right</span>
           <span className="text-orange-500 font-bold">{category.name}</span>
         </div>
@@ -46,14 +46,14 @@ export default async function ProductListPage({ params }: { params: { brand: str
           {category.name}
         </h2>
         <p className="text-slate-400 text-[13px] mb-5">
-          {brand.name} {carModel.name} · {bodyType.name}
+          {brand.name} {carModel.name} · {gen.name} · {gen.years}
         </p>
 
         <ProductFilters
           products={items}
           brandSlug={params.brand}
           brandName={brand.name}
-          modelName={carModel.name}
+          modelName={`${carModel.name} ${gen.name}`}
           categoryName={category.name}
         />
       </main>

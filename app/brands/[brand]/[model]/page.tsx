@@ -7,17 +7,17 @@ import { getProducts } from '@/lib/products-store'
 
 export const revalidate = 0
 
-export default async function ModelBodyPage({ params }: { params: { brand: string; model: string } }) {
+export default async function ModelGenerationsPage({ params }: { params: { brand: string; model: string } }) {
   const brand = brands.find((b) => b.slug === params.brand)
   const carModel = models.find((m) => m.slug === params.model && m.brandSlug === params.brand)
   if (!brand || !carModel) notFound()
 
   const products = await getProducts()
 
-  const bodyTypesWithCount = carModel.bodyTypes.map((body) => ({
-    ...body,
+  const generationsWithCount = carModel.generations.map((gen) => ({
+    ...gen,
     count: products.filter(
-      (p) => p.brandSlug === params.brand && p.modelSlug === params.model && p.bodySlug === body.slug
+      (p) => p.brandSlug === params.brand && p.modelSlug === params.model && p.generationSlug === gen.slug
     ).length,
   }))
 
@@ -40,35 +40,46 @@ export default async function ModelBodyPage({ params }: { params: { brand: strin
               {carModel.name}
             </span>
           </div>
-          <div>
-            <h1 className="text-white text-[24px] font-black leading-tight" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-              {brand.name} {carModel.name}
-            </h1>
-            <p className="text-slate-400 text-[13px] mt-1">Выберите тип кузова</p>
-          </div>
+          <h1 className="text-white text-[24px] font-black leading-tight" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            {brand.name} {carModel.name}
+          </h1>
+          <p className="text-slate-400 text-[13px] mt-1">Выберите поколение</p>
         </div>
       </div>
 
       <main className="pb-32 px-5 max-w-2xl mx-auto mt-5">
         <div className="flex flex-col gap-3">
-          {bodyTypesWithCount.map((body) => (
+          {generationsWithCount.map((gen) => (
             <Link
-              key={body.slug}
-              href={`/brands/${params.brand}/${params.model}/${body.slug}`}
+              key={gen.slug}
+              href={`/brands/${params.brand}/${params.model}/${gen.slug}`}
               className="bg-white border border-slate-100 rounded-2xl p-5 flex items-center gap-4 hover:border-orange-400 hover:shadow-md transition-all group shadow-sm"
             >
-              <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-[#00234B] group-hover:bg-orange-50 group-hover:text-orange-500 transition-colors shrink-0">
-                <span className="material-symbols-outlined text-[28px]">{body.icon}</span>
+              {/* Иконка поколения */}
+              <div className="w-14 h-14 bg-slate-50 rounded-2xl flex flex-col items-center justify-center text-[#00234B] group-hover:bg-orange-50 group-hover:text-orange-500 transition-colors shrink-0">
+                <span className="material-symbols-outlined text-[22px]">directions_car</span>
               </div>
-              <div className="flex-1">
-                <h4 className="text-[18px] font-black text-[#00234B]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-                  {body.name}
-                </h4>
-                <p className="text-slate-400 text-[12px] mt-0.5">
-                  {brand.name} {carModel.name} · {body.count} запч.
-                </p>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="text-[16px] font-black text-[#00234B]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                    {gen.name}
+                  </h4>
+                  <span className="text-[11px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md shrink-0" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                    {gen.years}
+                  </span>
+                </div>
+                <p className="text-slate-400 text-[12px] mt-0.5">{gen.bodyType}</p>
               </div>
-              <span className="material-symbols-outlined text-slate-300 group-hover:text-orange-500 transition-colors">chevron_right</span>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {gen.count > 0 && (
+                  <span className="text-[12px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                    {gen.count} запч.
+                  </span>
+                )}
+                <span className="material-symbols-outlined text-slate-300 group-hover:text-orange-500 transition-colors">chevron_right</span>
+              </div>
             </Link>
           ))}
         </div>

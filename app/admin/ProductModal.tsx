@@ -15,13 +15,16 @@ function generateId(name: string, brand: string): string {
   return `${brand}-${name}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
 
+const defaultModel = models.find((m) => m.brandSlug === 'byd')!
+const defaultGen = defaultModel.generations[0]
+
 const emptyProduct: Omit<Product, 'id'> = {
   brand: 'BYD',
   brandSlug: 'byd',
-  model: 'Han',
-  modelSlug: 'han',
-  bodyType: 'Седан',
-  bodySlug: 'sedan',
+  model: defaultModel.name,
+  modelSlug: defaultModel.slug,
+  generation: defaultGen.name,
+  generationSlug: defaultGen.slug,
   category: 'Кузовные детали',
   categorySlug: 'kuzov',
   name: '',
@@ -49,48 +52,46 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
 
   const brandModels = models.filter((m) => m.brandSlug === form.brandSlug)
   const currentModel = models.find((m) => m.slug === form.modelSlug && m.brandSlug === form.brandSlug)
-  const bodyTypes = currentModel?.bodyTypes ?? []
+  const generations = currentModel?.generations ?? []
 
   const handleBrandChange = (brandSlug: string) => {
     const brand = brands.find((b) => b.slug === brandSlug)
     if (!brand) return
     const firstModel = models.find((m) => m.brandSlug === brandSlug)
-    const firstBody = firstModel?.bodyTypes[0]
+    const firstGen = firstModel?.generations[0]
     setForm((prev) => ({
       ...prev,
       brand: brand.name,
       brandSlug,
       model: firstModel?.name ?? '',
       modelSlug: firstModel?.slug ?? '',
-      bodyType: firstBody?.name ?? '',
-      bodySlug: firstBody?.slug ?? '',
+      generation: firstGen?.name ?? '',
+      generationSlug: firstGen?.slug ?? '',
     }))
   }
 
   const handleModelChange = (modelSlug: string) => {
     const m = models.find((x) => x.slug === modelSlug && x.brandSlug === form.brandSlug)
     if (!m) return
-    const firstBody = m.bodyTypes[0]
+    const firstGen = m.generations[0]
     setForm((prev) => ({
       ...prev,
       model: m.name,
       modelSlug: m.slug,
-      bodyType: firstBody?.name ?? '',
-      bodySlug: firstBody?.slug ?? '',
+      generation: firstGen?.name ?? '',
+      generationSlug: firstGen?.slug ?? '',
     }))
   }
 
-  const handleBodyChange = (bodySlug: string) => {
-    const body = currentModel?.bodyTypes.find((b) => b.slug === bodySlug)
-    if (!body) return
-    setForm((prev) => ({ ...prev, bodyType: body.name, bodySlug: body.slug }))
+  const handleGenerationChange = (genSlug: string) => {
+    const gen = currentModel?.generations.find((g) => g.slug === genSlug)
+    if (!gen) return
+    setForm((prev) => ({ ...prev, generation: gen.name, generationSlug: gen.slug }))
   }
 
   const handleCategoryChange = (catSlug: string) => {
     const cat = categories.find((c) => c.slug === catSlug)
-    if (cat) {
-      setForm((prev) => ({ ...prev, category: cat.name, categorySlug: catSlug }))
-    }
+    if (cat) setForm((prev) => ({ ...prev, category: cat.name, categorySlug: catSlug }))
   }
 
   const validate = () => {
@@ -132,7 +133,6 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left column */}
             <div className="space-y-4">
-              {/* Name */}
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
                   Наименование детали *
@@ -147,9 +147,9 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
                 {errors.name && <p className="text-error text-[11px] mt-1">{errors.name}</p>}
               </div>
 
-              {/* Brand */}
+              {/* Бренд */}
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Бренд</label>
+                <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Марка</label>
                 <select
                   value={form.brandSlug}
                   onChange={(e) => handleBrandChange(e.target.value)}
@@ -159,7 +159,7 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
                 </select>
               </div>
 
-              {/* Model */}
+              {/* Модель */}
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Модель *</label>
                 <select
@@ -172,19 +172,21 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
                 {errors.modelSlug && <p className="text-error text-[11px] mt-1">{errors.modelSlug}</p>}
               </div>
 
-              {/* Body type */}
+              {/* Поколение */}
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Тип кузова</label>
+                <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Поколение</label>
                 <select
-                  value={form.bodySlug}
-                  onChange={(e) => handleBodyChange(e.target.value)}
+                  value={form.generationSlug}
+                  onChange={(e) => handleGenerationChange(e.target.value)}
                   className="w-full px-3 py-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:border-primary-container"
                 >
-                  {bodyTypes.map((b) => <option key={b.slug} value={b.slug}>{b.name}</option>)}
+                  {generations.map((g) => (
+                    <option key={g.slug} value={g.slug}>{g.name} ({g.years})</option>
+                  ))}
                 </select>
               </div>
 
-              {/* Category */}
+              {/* Категория */}
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Категория запчастей</label>
                 <select
@@ -196,7 +198,7 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
                 </select>
               </div>
 
-              {/* Article */}
+              {/* Артикул */}
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Артикул *</label>
                 <input
@@ -209,7 +211,7 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
                 {errors.partNumber && <p className="text-error text-[11px] mt-1">{errors.partNumber}</p>}
               </div>
 
-              {/* Price + Type */}
+              {/* Цена + Тип */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Цена (USD) *</label>
@@ -238,7 +240,7 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
                 </div>
               </div>
 
-              {/* Status toggle */}
+              {/* Статус */}
               <div className="bg-[#F8FAFC] border border-[#E2E8F0] p-4 rounded-xl">
                 <div className="flex items-center justify-between">
                   <label className="text-[11px] font-bold uppercase tracking-widest text-slate-500" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
@@ -249,13 +251,9 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
                     <button
                       type="button"
                       onClick={() => set('status', form.status === 'В наличии' ? 'Под заказ' : 'В наличии')}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                        form.status === 'В наличии' ? 'bg-orange-500' : 'bg-slate-300'
-                      }`}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.status === 'В наличии' ? 'bg-orange-500' : 'bg-slate-300'}`}
                     >
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        form.status === 'В наличии' ? 'translate-x-6' : 'translate-x-1'
-                      }`} />
+                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.status === 'В наличии' ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
                   </div>
                 </div>
@@ -264,7 +262,6 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
 
             {/* Right column */}
             <div className="space-y-4">
-              {/* Image URL */}
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
                   URL фотографии
@@ -284,7 +281,6 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
                 )}
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Описание</label>
                 <textarea
@@ -296,7 +292,6 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
                 />
               </div>
 
-              {/* Material + Weight */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Материал</label>
