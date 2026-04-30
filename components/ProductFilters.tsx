@@ -36,14 +36,15 @@ export default function ProductFilters({ products, brandSlug, brandName, categor
 
   if (products.length === 0) {
     return (
-      <div className="bg-white border border-[#E2E8F0] rounded-xl p-12 text-center">
-        <span className="material-symbols-outlined text-4xl text-outline mb-4 block">inventory_2</span>
-        <p className="text-on-surface-variant text-body-md mb-4">В этой категории пока нет товаров.</p>
+      <div className="bg-white border border-slate-100 rounded-2xl p-12 text-center shadow-sm">
+        <span className="material-symbols-outlined text-4xl text-slate-300 mb-4 block">inventory_2</span>
+        <p className="text-slate-500 text-[15px] mb-5">В этой категории пока нет товаров.</p>
         <a
           href={`https://wa.me/996704226587?text=${encodeURIComponent(`Здравствуйте! Ищу ${categoryName} для ${brandName}.`)}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block bg-orange-500 text-white px-6 py-3 rounded-lg text-[13px] font-bold uppercase hover:bg-orange-600 transition-colors"
+          className="inline-block bg-orange-500 text-white px-6 py-3 rounded-xl text-[13px] font-bold uppercase hover:bg-orange-600 transition-colors"
+          style={{ fontFamily: 'Space Grotesk, sans-serif' }}
         >
           Запросить в WhatsApp
         </a>
@@ -54,37 +55,36 @@ export default function ProductFilters({ products, brandSlug, brandName, categor
   return (
     <div>
       {/* Filter bar */}
-      <div className="flex items-center gap-2 mb-stack-md">
+      <div className="flex items-center gap-2 mb-4">
         <button
           onClick={() => setShowFilters((v) => !v)}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-[12px] font-bold uppercase transition-all shrink-0 ${
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-[12px] font-bold uppercase transition-all shrink-0 ${
             activeFiltersCount > 0
-              ? 'bg-primary-container text-white border-primary-container'
-              : 'bg-white text-primary-container border-[#E2E8F0] hover:border-orange-500'
+              ? 'bg-[#00234B] text-white border-[#00234B]'
+              : 'bg-white text-[#00234B] border-slate-200 hover:border-orange-400'
           }`}
           style={{ fontFamily: 'Space Grotesk, sans-serif' }}
         >
           <span className="material-symbols-outlined text-sm">tune</span>
           Фильтры
           {activeFiltersCount > 0 && (
-            <span className="bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center ml-1">
+            <span className="bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center ml-0.5">
               {activeFiltersCount}
             </span>
           )}
         </button>
 
-        <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-none flex-1">
-          {/* Sort chips */}
+        <div className="flex gap-2 overflow-x-auto pb-0.5 flex-1" style={{ scrollbarWidth: 'none' }}>
           {(['default', 'price_asc', 'price_desc'] as SortKey[]).map((s) => {
-            const labels = { default: 'По умолчанию', price_asc: 'Цена ↑', price_desc: 'Цена ↓' }
+            const labels = { default: 'По умолч.', price_asc: 'Цена ↑', price_desc: 'Цена ↓' }
             return (
               <button
                 key={s}
                 onClick={() => setSort(s)}
-                className={`shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase border transition-all ${
+                className={`shrink-0 px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all ${
                   sort === s
                     ? 'bg-orange-500 text-white border-orange-500'
-                    : 'bg-white text-secondary border-[#E2E8F0] hover:border-orange-300'
+                    : 'bg-white text-slate-500 border-slate-200 hover:border-orange-300'
                 }`}
                 style={{ fontFamily: 'Space Grotesk, sans-serif' }}
               >
@@ -97,9 +97,9 @@ export default function ProductFilters({ products, brandSlug, brandName, categor
 
       {/* Expandable filter panel */}
       {showFilters && (
-        <div className="bg-white border border-[#E2E8F0] rounded-xl p-gutter mb-stack-md">
-          <div className="mb-stack-md">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+        <div className="bg-white border border-slate-100 rounded-2xl p-4 mb-4 shadow-sm">
+          <div className="mb-4">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
               Наличие
             </p>
             <div className="flex gap-2 flex-wrap">
@@ -109,8 +109,8 @@ export default function ProductFilters({ products, brandSlug, brandName, categor
                   onClick={() => setStatus(s)}
                   className={`px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all ${
                     status === s
-                      ? 'bg-primary-container text-white border-primary-container'
-                      : 'bg-surface-container-low text-secondary border-transparent hover:border-outline-variant'
+                      ? 'bg-[#00234B] text-white border-[#00234B]'
+                      : 'bg-slate-50 text-slate-500 border-transparent hover:border-slate-300'
                   }`}
                   style={{ fontFamily: 'Space Grotesk, sans-serif' }}
                 >
@@ -121,7 +121,7 @@ export default function ProductFilters({ products, brandSlug, brandName, categor
           </div>
 
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
               Тип детали
             </p>
             <div className="flex gap-2 flex-wrap">
@@ -131,8 +131,8 @@ export default function ProductFilters({ products, brandSlug, brandName, categor
                   onClick={() => setType(t)}
                   className={`px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all ${
                     type === t
-                      ? 'bg-primary-container text-white border-primary-container'
-                      : 'bg-surface-container-low text-secondary border-transparent hover:border-outline-variant'
+                      ? 'bg-[#00234B] text-white border-[#00234B]'
+                      : 'bg-slate-50 text-slate-500 border-transparent hover:border-slate-300'
                   }`}
                   style={{ fontFamily: 'Space Grotesk, sans-serif' }}
                 >
@@ -145,7 +145,7 @@ export default function ProductFilters({ products, brandSlug, brandName, categor
           {activeFiltersCount > 0 && (
             <button
               onClick={() => { setStatus('all'); setType('all'); setSort('default') }}
-              className="mt-stack-md text-[12px] text-error font-bold flex items-center gap-1"
+              className="mt-4 text-[12px] text-red-500 font-bold flex items-center gap-1"
               style={{ fontFamily: 'Space Grotesk, sans-serif' }}
             >
               <span className="material-symbols-outlined text-sm">close</span>
@@ -156,14 +156,14 @@ export default function ProductFilters({ products, brandSlug, brandName, categor
       )}
 
       {/* Results count */}
-      <p className="text-[13px] text-on-surface-variant mb-stack-md">
+      <p className="text-[12px] text-slate-400 mb-3">
         {filtered.length} из {products.length} товаров
       </p>
 
       {filtered.length === 0 ? (
-        <div className="bg-white border border-[#E2E8F0] rounded-xl p-10 text-center">
-          <span className="material-symbols-outlined text-4xl text-outline mb-3 block">search_off</span>
-          <p className="text-on-surface-variant text-body-md mb-3">Нет товаров с такими фильтрами</p>
+        <div className="bg-white border border-slate-100 rounded-2xl p-10 text-center shadow-sm">
+          <span className="material-symbols-outlined text-4xl text-slate-300 mb-3 block">search_off</span>
+          <p className="text-slate-500 text-[15px] mb-3">Нет товаров с такими фильтрами</p>
           <button
             onClick={() => { setStatus('all'); setType('all'); setSort('default') }}
             className="text-orange-500 text-[13px] font-bold underline"
@@ -172,49 +172,47 @@ export default function ProductFilters({ products, brandSlug, brandName, categor
           </button>
         </div>
       ) : (
-        <div className="flex flex-col gap-gutter">
+        <div className="flex flex-col gap-3">
           {filtered.map((product) => (
-            <div key={product.id} className="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden flex hover:shadow-md transition-shadow">
-              <Link href={`/product/${product.id}`} className="w-32 h-32 shrink-0 bg-surface-container">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  width={128}
-                  height={128}
-                  className="w-full h-full object-cover"
-                />
-              </Link>
-              <div className="flex-1 p-stack-md flex flex-col justify-between overflow-hidden">
-                <div>
-                  <Link href={`/product/${product.id}`}>
-                    <h3 className="text-[14px] font-bold text-primary leading-snug truncate" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-                      {product.name}
-                    </h3>
-                  </Link>
-                  <p className="text-[11px] text-secondary mt-0.5">{product.partNumber}</p>
-                  <div className="flex gap-1.5 mt-1.5 flex-wrap">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+            <div key={product.id} className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md hover:border-orange-200 transition-all">
+              <Link href={`/product/${product.id}`} className="flex gap-0">
+                <div className="w-28 h-[120px] shrink-0 bg-slate-50 overflow-hidden">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    width={112}
+                    height={120}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex-1 p-3 overflow-hidden">
+                  <div className="flex gap-1.5 mb-1.5">
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
                       product.status === 'В наличии'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-amber-100 text-amber-700'
                     }`}>
                       {product.status}
                     </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
                       product.type === 'Оригинал'
-                        ? 'bg-primary-fixed text-on-primary-fixed-variant'
-                        : 'bg-surface-container text-secondary'
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'bg-slate-100 text-slate-500'
                     }`}>
                       {product.type}
                     </span>
                   </div>
+                  <h3 className="text-[14px] font-bold text-[#00234B] leading-snug line-clamp-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                    {product.name}
+                  </h3>
+                  <p className="text-[11px] text-slate-400 mt-0.5">{product.partNumber}</p>
                 </div>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-[20px] font-bold text-primary" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
-                    ${product.price}
-                  </span>
-                  <AddToCartButton product={product} compact />
-                </div>
+              </Link>
+              <div className="flex items-center justify-between px-3 pb-3 pt-0 border-t border-slate-50 mt-0">
+                <span className="text-[22px] font-black text-[#00234B]" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+                  ${product.price}
+                </span>
+                <AddToCartButton product={product} compact />
               </div>
             </div>
           ))}
