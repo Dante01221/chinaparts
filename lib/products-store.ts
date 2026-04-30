@@ -15,28 +15,9 @@ async function getRedis() {
   })
 }
 
-// Local file fallback (dev without Redis)
-async function readLocalFile(): Promise<Product[]> {
-  const fs = await import('fs/promises')
-  const path = await import('path')
-  const file = path.join(process.cwd(), 'data', 'products-local.json')
-  try {
-    const data = await fs.readFile(file, 'utf-8')
-    return JSON.parse(data)
-  } catch {
-    return initialProducts
-  }
-}
-
-async function writeLocalFile(products: Product[]): Promise<void> {
-  const fs = await import('fs/promises')
-  const path = await import('path')
-  const file = path.join(process.cwd(), 'data', 'products-local.json')
-  await fs.writeFile(file, JSON.stringify(products, null, 2))
-}
-
 export async function getProducts(): Promise<Product[]> {
-  if (isRedisConfigured()) {
+  if (!isRedisConfigured()) return initialProducts
+  try {
     const redis = await getRedis()
     const data = await redis.get<Product[]>(KV_KEY)
     if (!data) {
@@ -44,17 +25,15 @@ export async function getProducts(): Promise<Product[]> {
       return initialProducts
     }
     return data
+  } catch {
+    return initialProducts
   }
-  return readLocalFile()
 }
 
 export async function setProducts(products: Product[]): Promise<void> {
-  if (isRedisConfigured()) {
-    const redis = await getRedis()
-    await redis.set(KV_KEY, products)
-  } else {
-    await writeLocalFile(products)
-  }
+  if (!isRedisConfigured()) return
+  const redis = await getRedis()
+  await redis.set(KV_KEY, products)
 }
 
 export async function addProduct(product: Product): Promise<Product[]> {

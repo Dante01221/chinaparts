@@ -1,9 +1,14 @@
 import Link from 'next/link'
 import TopBar from '@/components/TopBar'
 import BottomNav from '@/components/BottomNav'
-import { categories, brands, products } from '@/data/products'
+import { categories, brands } from '@/data/products'
+import { getProducts } from '@/lib/products-store'
 
-export default function CategoriesPage() {
+export const revalidate = 0
+
+export default async function CategoriesPage() {
+  const products = await getProducts()
+
   return (
     <div className="min-h-screen bg-background">
       <TopBar />
@@ -19,9 +24,7 @@ export default function CategoriesPage() {
             const brandsWithCat = brands.filter((b) =>
               products.some((p) => p.brandSlug === b.slug && p.categorySlug === cat.slug)
             )
-
             if (totalCount === 0) return null
-
             return (
               <div key={cat.slug} className="bg-white border border-[#E2E8F0] rounded-xl overflow-hidden">
                 <div className="flex items-center gap-4 p-gutter border-b border-[#E2E8F0]">
@@ -35,7 +38,6 @@ export default function CategoriesPage() {
                     <p className="text-[12px] text-on-surface-variant">{cat.description} · {totalCount} товаров</p>
                   </div>
                 </div>
-
                 <div className="p-stack-md flex flex-wrap gap-2">
                   {brandsWithCat.map((brand) => {
                     const count = products.filter(
