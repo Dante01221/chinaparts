@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { Product } from '@/data/products'
-import { brands, categories } from '@/data/products'
+import { brands, models, categories } from '@/data/products'
 
 interface Props {
   mode: 'add' | 'edit'
@@ -18,7 +18,10 @@ function generateId(name: string, brand: string): string {
 const emptyProduct: Omit<Product, 'id'> = {
   brand: 'BYD',
   brandSlug: 'byd',
-  model: '',
+  model: 'Han',
+  modelSlug: 'han',
+  bodyType: 'Седан',
+  bodySlug: 'sedan',
   category: 'Кузовные детали',
   categorySlug: 'kuzov',
   name: '',
@@ -44,11 +47,43 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
     setErrors((prev) => { const e = { ...prev }; delete e[field as string]; return e })
   }
 
+  const brandModels = models.filter((m) => m.brandSlug === form.brandSlug)
+  const currentModel = models.find((m) => m.slug === form.modelSlug && m.brandSlug === form.brandSlug)
+  const bodyTypes = currentModel?.bodyTypes ?? []
+
   const handleBrandChange = (brandSlug: string) => {
     const brand = brands.find((b) => b.slug === brandSlug)
-    if (brand) {
-      setForm((prev) => ({ ...prev, brand: brand.name, brandSlug }))
-    }
+    if (!brand) return
+    const firstModel = models.find((m) => m.brandSlug === brandSlug)
+    const firstBody = firstModel?.bodyTypes[0]
+    setForm((prev) => ({
+      ...prev,
+      brand: brand.name,
+      brandSlug,
+      model: firstModel?.name ?? '',
+      modelSlug: firstModel?.slug ?? '',
+      bodyType: firstBody?.name ?? '',
+      bodySlug: firstBody?.slug ?? '',
+    }))
+  }
+
+  const handleModelChange = (modelSlug: string) => {
+    const m = models.find((x) => x.slug === modelSlug && x.brandSlug === form.brandSlug)
+    if (!m) return
+    const firstBody = m.bodyTypes[0]
+    setForm((prev) => ({
+      ...prev,
+      model: m.name,
+      modelSlug: m.slug,
+      bodyType: firstBody?.name ?? '',
+      bodySlug: firstBody?.slug ?? '',
+    }))
+  }
+
+  const handleBodyChange = (bodySlug: string) => {
+    const body = currentModel?.bodyTypes.find((b) => b.slug === bodySlug)
+    if (!body) return
+    setForm((prev) => ({ ...prev, bodyType: body.name, bodySlug: body.slug }))
   }
 
   const handleCategoryChange = (catSlug: string) => {
@@ -63,7 +98,7 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
     if (!form.name.trim()) e.name = 'Обязательное поле'
     if (!form.partNumber.trim()) e.partNumber = 'Обязательное поле'
     if (!form.price || form.price <= 0) e.price = 'Укажите цену'
-    if (!form.model.trim()) e.model = 'Укажите модель'
+    if (!form.modelSlug) e.modelSlug = 'Укажите модель'
     return e
   }
 
@@ -71,7 +106,6 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
     e.preventDefault()
     const errs = validate()
     if (Object.keys(errs).length > 0) { setErrors(errs); return }
-
     const id = product?.id || generateId(form.name, form.brandSlug)
     onSave({ ...form, id } as Product)
   }
@@ -79,7 +113,6 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-xl w-full max-w-3xl shadow-2xl my-4">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-[#E2E8F0] rounded-t-xl">
           <h2 className="font-bold text-primary-container flex items-center gap-2" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
             <span className="material-symbols-outlined">edit_note</span>
@@ -114,34 +147,46 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
                 {errors.name && <p className="text-error text-[11px] mt-1">{errors.name}</p>}
               </div>
 
-              {/* Brand + Model */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Бренд</label>
-                  <select
-                    value={form.brandSlug}
-                    onChange={(e) => handleBrandChange(e.target.value)}
-                    className="w-full px-3 py-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:border-primary-container"
-                  >
-                    {brands.map((b) => <option key={b.slug} value={b.slug}>{b.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Модель *</label>
-                  <input
-                    type="text"
-                    value={form.model}
-                    onChange={(e) => set('model', e.target.value)}
-                    className={`w-full px-3 py-3 bg-[#F8FAFC] border rounded-lg text-sm focus:outline-none focus:border-primary-container ${errors.model ? 'border-error' : 'border-[#E2E8F0]'}`}
-                    placeholder="Han"
-                  />
-                  {errors.model && <p className="text-error text-[11px] mt-1">{errors.model}</p>}
-                </div>
+              {/* Brand */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Бренд</label>
+                <select
+                  value={form.brandSlug}
+                  onChange={(e) => handleBrandChange(e.target.value)}
+                  className="w-full px-3 py-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:border-primary-container"
+                >
+                  {brands.map((b) => <option key={b.slug} value={b.slug}>{b.name}</option>)}
+                </select>
+              </div>
+
+              {/* Model */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Модель *</label>
+                <select
+                  value={form.modelSlug}
+                  onChange={(e) => handleModelChange(e.target.value)}
+                  className={`w-full px-3 py-3 bg-[#F8FAFC] border rounded-lg text-sm focus:outline-none focus:border-primary-container ${errors.modelSlug ? 'border-error' : 'border-[#E2E8F0]'}`}
+                >
+                  {brandModels.map((m) => <option key={m.slug} value={m.slug}>{m.name}</option>)}
+                </select>
+                {errors.modelSlug && <p className="text-error text-[11px] mt-1">{errors.modelSlug}</p>}
+              </div>
+
+              {/* Body type */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Тип кузова</label>
+                <select
+                  value={form.bodySlug}
+                  onChange={(e) => handleBodyChange(e.target.value)}
+                  className="w-full px-3 py-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg text-sm focus:outline-none focus:border-primary-container"
+                >
+                  {bodyTypes.map((b) => <option key={b.slug} value={b.slug}>{b.name}</option>)}
+                </select>
               </div>
 
               {/* Category */}
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Категория</label>
+                <label className="block text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Категория запчастей</label>
                 <select
                   value={form.categorySlug}
                   onChange={(e) => handleCategoryChange(e.target.value)}
@@ -285,7 +330,6 @@ export default function ProductModal({ mode, product, onSave, onClose }: Props) 
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center justify-end gap-4 pt-6 mt-6 border-t border-slate-100">
             <button
               type="button"

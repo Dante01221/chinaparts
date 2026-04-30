@@ -14,10 +14,11 @@ interface Props {
   products: Product[]
   brandSlug: string
   brandName: string
+  modelName?: string
   categoryName: string
 }
 
-export default function ProductFilters({ products, brandSlug, brandName, categoryName }: Props) {
+export default function ProductFilters({ products, brandSlug, brandName, modelName, categoryName }: Props) {
   const [sort, setSort] = useState<SortKey>('default')
   const [status, setStatus] = useState<StatusFilter>('all')
   const [type, setType] = useState<TypeFilter>('all')
@@ -40,7 +41,7 @@ export default function ProductFilters({ products, brandSlug, brandName, categor
         <span className="material-symbols-outlined text-4xl text-slate-300 mb-4 block">inventory_2</span>
         <p className="text-slate-500 text-[15px] mb-5">В этой категории пока нет товаров.</p>
         <a
-          href={`https://wa.me/996704226587?text=${encodeURIComponent(`Здравствуйте! Ищу ${categoryName} для ${brandName}.`)}`}
+          href={`https://wa.me/996704226587?text=${encodeURIComponent(`Здравствуйте! Ищу ${categoryName} для ${brandName}${modelName ? ` ${modelName}` : ''}.`)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-block bg-orange-500 text-white px-6 py-3 rounded-xl text-[13px] font-bold uppercase hover:bg-orange-600 transition-colors"

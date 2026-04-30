@@ -24,7 +24,9 @@ export default async function ProductPage({ params }: { params: { id: string } }
           <span className="material-symbols-outlined text-slate-300 text-sm">chevron_right</span>
           <Link href={`/brands/${product.brandSlug}`} className="text-slate-400 hover:text-orange-500 transition-colors">{product.brand}</Link>
           <span className="material-symbols-outlined text-slate-300 text-sm">chevron_right</span>
-          <Link href={`/brands/${product.brandSlug}/${product.categorySlug}`} className="text-slate-400 hover:text-orange-500 transition-colors">{product.category}</Link>
+          <Link href={`/brands/${product.brandSlug}/${product.modelSlug}/${product.bodySlug}`} className="text-slate-400 hover:text-orange-500 transition-colors">{product.model}</Link>
+          <span className="material-symbols-outlined text-slate-300 text-sm">chevron_right</span>
+          <Link href={`/brands/${product.brandSlug}/${product.modelSlug}/${product.bodySlug}/${product.categorySlug}`} className="text-slate-400 hover:text-orange-500 transition-colors">{product.category}</Link>
         </div>
 
         {/* Product image */}

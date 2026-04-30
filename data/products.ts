@@ -3,6 +3,9 @@ export interface Product {
   brand: string
   brandSlug: string
   model: string
+  modelSlug: string
+  bodyType: string
+  bodySlug: string
   category: string
   categorySlug: string
   name: string
@@ -17,13 +20,53 @@ export interface Product {
   material?: string
 }
 
-export const products: Product[] = [
+export interface ModelBody {
+  name: string
+  slug: string
+  icon: string
+}
+
+export interface CarModel {
+  name: string
+  slug: string
+  brandSlug: string
+  bodyTypes: ModelBody[]
+}
+
+export const models: CarModel[] = [
   // BYD
+  { name: 'Han', slug: 'han', brandSlug: 'byd', bodyTypes: [{ name: 'Седан', slug: 'sedan', icon: 'directions_car' }] },
+  { name: 'Tang', slug: 'tang', brandSlug: 'byd', bodyTypes: [{ name: 'SUV', slug: 'suv', icon: 'directions_car' }] },
+  { name: 'Atto 3', slug: 'atto-3', brandSlug: 'byd', bodyTypes: [{ name: 'SUV', slug: 'suv', icon: 'directions_car' }] },
+  { name: 'Seal', slug: 'seal', brandSlug: 'byd', bodyTypes: [{ name: 'Седан', slug: 'sedan', icon: 'directions_car' }] },
+  // Geely
+  { name: 'Atlas', slug: 'atlas', brandSlug: 'geely', bodyTypes: [{ name: 'SUV', slug: 'suv', icon: 'directions_car' }] },
+  { name: 'Coolray', slug: 'coolray', brandSlug: 'geely', bodyTypes: [{ name: 'SUV', slug: 'suv', icon: 'directions_car' }] },
+  { name: 'Emgrand', slug: 'emgrand', brandSlug: 'geely', bodyTypes: [{ name: 'Седан', slug: 'sedan', icon: 'directions_car' }] },
+  // Haval
+  { name: 'H6', slug: 'h6', brandSlug: 'haval', bodyTypes: [{ name: 'SUV', slug: 'suv', icon: 'directions_car' }] },
+  { name: 'Jolion', slug: 'jolion', brandSlug: 'haval', bodyTypes: [{ name: 'SUV', slug: 'suv', icon: 'directions_car' }] },
+  // Chery
+  { name: 'Tiggo 8', slug: 'tiggo-8', brandSlug: 'chery', bodyTypes: [{ name: 'SUV', slug: 'suv', icon: 'directions_car' }] },
+  { name: 'Arrizo 6', slug: 'arrizo-6', brandSlug: 'chery', bodyTypes: [{ name: 'Седан', slug: 'sedan', icon: 'directions_car' }] },
+  // Changan
+  { name: 'CS75 Plus', slug: 'cs75-plus', brandSlug: 'changan', bodyTypes: [{ name: 'SUV', slug: 'suv', icon: 'directions_car' }] },
+  { name: 'Lamore', slug: 'lamore', brandSlug: 'changan', bodyTypes: [{ name: 'Хэтчбек', slug: 'hatchback', icon: 'directions_car' }] },
+  // GAC
+  { name: 'GS8', slug: 'gs8', brandSlug: 'gac', bodyTypes: [{ name: 'SUV', slug: 'suv', icon: 'directions_car' }] },
+  { name: 'M8', slug: 'm8', brandSlug: 'gac', bodyTypes: [{ name: 'Минивэн', slug: 'minivan', icon: 'airport_shuttle' }] },
+]
+
+export const products: Product[] = [
+  // BYD Han
   {
     id: 'byd-han-front-bumper',
     brand: 'BYD',
     brandSlug: 'byd',
     model: 'Han',
+    modelSlug: 'han',
+    bodyType: 'Седан',
+    bodySlug: 'sedan',
     category: 'Кузовные детали',
     categorySlug: 'kuzov',
     name: 'Бампер передний BYD Han',
@@ -42,6 +85,9 @@ export const products: Product[] = [
     brand: 'BYD',
     brandSlug: 'byd',
     model: 'Han',
+    modelSlug: 'han',
+    bodyType: 'Седан',
+    bodySlug: 'sedan',
     category: 'Кузовные детали',
     categorySlug: 'kuzov',
     name: 'Решетка радиатора BYD Han',
@@ -60,6 +106,9 @@ export const products: Product[] = [
     brand: 'BYD',
     brandSlug: 'byd',
     model: 'Han',
+    modelSlug: 'han',
+    bodyType: 'Седан',
+    bodySlug: 'sedan',
     category: 'Освещение',
     categorySlug: 'lighting',
     name: 'Фара передняя левая BYD Han',
@@ -78,6 +127,9 @@ export const products: Product[] = [
     brand: 'BYD',
     brandSlug: 'byd',
     model: 'Han',
+    modelSlug: 'han',
+    bodyType: 'Седан',
+    bodySlug: 'sedan',
     category: 'Подвеска',
     categorySlug: 'suspension',
     name: 'Амортизатор передний BYD Han',
@@ -92,12 +144,15 @@ export const products: Product[] = [
     material: 'Сталь',
   },
 
-  // GEELY
+  // Geely Atlas
   {
     id: 'geely-atlas-front-bumper',
     brand: 'Geely',
     brandSlug: 'geely',
     model: 'Atlas',
+    modelSlug: 'atlas',
+    bodyType: 'SUV',
+    bodySlug: 'suv',
     category: 'Кузовные детали',
     categorySlug: 'kuzov',
     name: 'Бампер передний Geely Atlas',
@@ -116,6 +171,9 @@ export const products: Product[] = [
     brand: 'Geely',
     brandSlug: 'geely',
     model: 'Atlas',
+    modelSlug: 'atlas',
+    bodyType: 'SUV',
+    bodySlug: 'suv',
     category: 'Кузовные детали',
     categorySlug: 'kuzov',
     name: 'Решетка радиатора Geely Atlas',
@@ -134,6 +192,9 @@ export const products: Product[] = [
     brand: 'Geely',
     brandSlug: 'geely',
     model: 'Atlas',
+    modelSlug: 'atlas',
+    bodyType: 'SUV',
+    bodySlug: 'suv',
     category: 'Тормоза',
     categorySlug: 'brakes',
     name: 'Тормозные колодки Geely Atlas (перед)',
@@ -152,6 +213,9 @@ export const products: Product[] = [
     brand: 'Geely',
     brandSlug: 'geely',
     model: 'Coolray',
+    modelSlug: 'coolray',
+    bodyType: 'SUV',
+    bodySlug: 'suv',
     category: 'Кузовные детали',
     categorySlug: 'kuzov',
     name: 'Решетка радиатора Geely Coolray (чёрная)',
@@ -166,12 +230,15 @@ export const products: Product[] = [
     material: 'ABS-пластик',
   },
 
-  // HAVAL
+  // Haval H6
   {
     id: 'haval-h6-front-bumper',
     brand: 'Haval',
     brandSlug: 'haval',
     model: 'H6',
+    modelSlug: 'h6',
+    bodyType: 'SUV',
+    bodySlug: 'suv',
     category: 'Кузовные детали',
     categorySlug: 'kuzov',
     name: 'Бампер передний Haval H6',
@@ -190,6 +257,9 @@ export const products: Product[] = [
     brand: 'Haval',
     brandSlug: 'haval',
     model: 'H6',
+    modelSlug: 'h6',
+    bodyType: 'SUV',
+    bodySlug: 'suv',
     category: 'Освещение',
     categorySlug: 'lighting',
     name: 'Фара передняя правая Haval H6',
@@ -204,12 +274,15 @@ export const products: Product[] = [
     material: 'Поликарбонат',
   },
 
-  // CHERY
+  // Chery Tiggo 8
   {
     id: 'chery-tiggo-8-front-bumper',
     brand: 'Chery',
     brandSlug: 'chery',
     model: 'Tiggo 8',
+    modelSlug: 'tiggo-8',
+    bodyType: 'SUV',
+    bodySlug: 'suv',
     category: 'Кузовные детали',
     categorySlug: 'kuzov',
     name: 'Бампер передний Chery Tiggo 8',
@@ -228,6 +301,9 @@ export const products: Product[] = [
     brand: 'Chery',
     brandSlug: 'chery',
     model: 'Tiggo 8',
+    modelSlug: 'tiggo-8',
+    bodyType: 'SUV',
+    bodySlug: 'suv',
     category: 'Двигатель',
     categorySlug: 'engine',
     name: 'Фильтр масляный Chery Tiggo 8',
@@ -242,12 +318,15 @@ export const products: Product[] = [
     material: 'Металл + бумага',
   },
 
-  // CHANGAN
+  // Changan CS75 Plus
   {
     id: 'changan-cs75-front-bumper',
     brand: 'Changan',
     brandSlug: 'changan',
     model: 'CS75 Plus',
+    modelSlug: 'cs75-plus',
+    bodyType: 'SUV',
+    bodySlug: 'suv',
     category: 'Кузовные детали',
     categorySlug: 'kuzov',
     name: 'Бампер передний Changan CS75 Plus',
@@ -262,12 +341,15 @@ export const products: Product[] = [
     material: 'PP-пластик',
   },
 
-  // GAC
+  // GAC GS8
   {
     id: 'gac-gs8-front-bumper',
     brand: 'GAC',
     brandSlug: 'gac',
     model: 'GS8',
+    modelSlug: 'gs8',
+    bodyType: 'SUV',
+    bodySlug: 'suv',
     category: 'Кузовные детали',
     categorySlug: 'kuzov',
     name: 'Бампер передний GAC GS8',
@@ -331,12 +413,6 @@ export const categories = [
   { name: 'Электроника', slug: 'electronics', icon: 'bolt', description: 'ЭБУ, проводка, датчики' },
   { name: 'Тормоза', slug: 'brakes', icon: 'stop_circle', description: 'Диски, колодки, суппорты' },
 ]
-
-export function getProductsByBrandAndCategory(brandSlug: string, categorySlug: string): Product[] {
-  return products.filter(
-    (p) => p.brandSlug === brandSlug && p.categorySlug === categorySlug
-  )
-}
 
 export function getProductById(id: string): Product | undefined {
   return products.find((p) => p.id === id)

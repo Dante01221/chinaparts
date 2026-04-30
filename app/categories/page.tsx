@@ -55,7 +55,7 @@ export default async function CategoriesPage() {
                     return (
                       <Link
                         key={brand.slug}
-                        href={`/brands/${brand.slug}/${cat.slug}`}
+                        href={`/brands/${brand.slug}`}
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-orange-50 hover:border-orange-300 border border-transparent rounded-xl transition-all group"
                       >
                         <span className="text-[13px] font-bold text-[#00234B] group-hover:text-orange-600" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
